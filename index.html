@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YUZI STORE - All Game Top Up</title>
+<style>
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:#000;
+    color:#fff;
+}
+.container{
+    max-width:480px;
+    margin:auto;
+    padding:20px;
+}
+h1{
+    text-align:center;
+    color:#ffd700;
+    padding:10px;
+    border-radius:10px;
+    animation: rgb 3s infinite;
+}
+@keyframes rgb{
+    0%{color:#ff0000;}
+    16%{color:#00ff00;}
+    33%{color:#0000ff;}
+    50%{color:#ffff00;}
+    66%{color:#ff00ff;}
+    83%{color:#00ffff;}
+    100%{color:#ff0000;}
+}
+.card{
+    background:#111;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:15px;
+}
+label{
+    display:block;
+    margin-top:10px;
+    font-size:14px;
+}
+input, select, button{
+    width:100%;
+    padding:10px;
+    margin-top:5px;
+    border-radius:5px;
+    border:none;
+    outline:none;
+}
+input, select{
+    background:#222;
+    color:#fff;
+}
+button{
+    background:#ffd700;
+    color:#000;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:15px;
+}
+button:hover{
+    background:#ffea00;
+}
+.footer{
+    text-align:center;
+    font-size:12px;
+    color:#aaa;
+    margin-top:20px;
+}
+.payment img{
+    width:100%;
+    border-radius:8px;
+    margin-top:10px;
+}
+.cart-item{
+    background:#222;
+    padding:8px;
+    border-radius:5px;
+    margin-top:5px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>YUZI STORE</h1>
+<p style="text-align:center;">Top Up Game Murah & Cepat</p>
+
+<div class="card">
+<label>Nama Game</label>
+<select id="game">
+<option value="Free Fire">Free Fire</option>
+<option value="Mobile Legends">Mobile Legends</option>
+<option value="PUBG Mobile">PUBG Mobile</option>
+<option value="Call of Duty Mobile">Call of Duty Mobile</option>
+<option value="Roblox">Roblox</option>
+<option value="Clash of Clans">Clash of Clans</option>
+<option value="Super Sus">Super Sus</option>
+</select>
+
+<label>User ID / Server</label>
+<input type="text" id="userid" placeholder="Masukkan ID">
+
+<label>Nominal Top Up</label>
+<select id="nominal">
+<option value="10000">Rp 10.000</option>
+<option value="20000">Rp 20.000</option>
+<option value="50000">Rp 50.000</option>
+<option value="100000">Rp 100.000</option>
+<option value="200000">Rp 200.000</option>
+</select>
+
+<label>Metode Pembayaran</label>
+<select id="payment">
+<option>DANA</option>
+<option>OVO</option>
+<option>GoPay</option>
+<option>ShopeePay</option>
+<option>QRIS</option>
+<option>Transfer Bank</option>
+</select>
+
+<label>Bukti Transfer</label>
+<input type="file" id="bukti" accept="image/*">
+
+<button onclick="tambahKeranjang()">Tambah ke Keranjang</button>
+</div>
+
+<div class="card">
+<h3>Keranjang Top Up</h3>
+<div id="cart"></div>
+<b>Total: <span id="total">Rp 0</span></b>
+<button onclick="kirimWA()">Kirim Semua ke WhatsApp</button>
+</div>
+
+<div class="card payment">
+<b>ALL PAYMENT</b>
+<img src="https://upload.wikimedia.org/wikipedia/commons/8/8f/Qris_logo.svg">
+</div>
+
+<div class="footer">
+© 2025 YUZI STORE<br>
+Fast • Trusted • Secure
+</div>
+</div>
+
+<script>
+// Data Keranjang
+let cart = [];
+
+// Update Harga & Tambah Keranjang
+function tambahKeranjang(){
+    let game = document.getElementById("game").value;
+    let id = document.getElementById("userid").value;
+    let nominal = parseInt(document.getElementById("nominal").value);
+    let payment = document.getElementById("payment").value;
+    let buktiFile = document.getElementById("bukti").files[0];
+    let buktiName = buktiFile ? buktiFile.name : "Tidak ada";
+
+    if(id===""){
+        alert("ID tidak boleh kosong");
+        return;
+    }
+
+    let item = {game,id,nominal,payment,buktiName};
+    cart.push(item);
+    updateCart();
+}
+
+// Update tampilan keranjang
+function updateCart(){
+    let cartDiv = document.getElementById("cart");
+    cartDiv.innerHTML = "";
+    let total = 0;
+    cart.forEach((item,index)=>{
+        total += item.nominal;
+        cartDiv.innerHTML += `
+        <div class="cart-item">
+        ${index+1}. ${item.game} - ID: ${item.id} - Nominal: Rp ${item.nominal.toLocaleString('id-ID')} - Payment: ${item.payment} - Bukti: ${item.buktiName}
+        </div>`;
+    });
+    document.getElementById("total").innerText = "Rp " + total.toLocaleString('id-ID');
+}
+
+// Kirim WhatsApp
+function kirimWA(){
+    if(cart.length===0){
+        alert("Keranjang kosong!");
+        return;
+    }
+    let pesan = "TOP UP GAME\n\n";
+    cart.forEach((item,index)=>{
+        pesan += `${index+1}. Game: ${item.game}\nID: ${item.id}\nNominal: Rp ${item.nominal.toLocaleString('id-ID')}\nPayment: ${item.payment}\nBukti: ${item.buktiName}\n\n`;
+    });
+    let noAdmin = "6285147769300";
+    let url = "https://wa.me/" + noAdmin + "?text=" + encodeURIComponent(pesan);
+    window.open(url,"_blank");
+}
+</script>
+
+</body>
+</html>
