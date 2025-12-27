@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YUZI STORE - All Game Top Up</title>
+<style>
+body {margin:0;font-family:Arial,sans-serif;background:#000;color:#fff;}
+.container {max-width:480px;margin:auto;padding:20px;}
+h1 {text-align:center;color:#ffd700;}
+input, select, button {width:100%;padding:10px;margin:5px 0;border-radius:5px;border:none;}
+button {background:#ffd700;color:#000;font-weight:bold;cursor:pointer;}
+.transaction {border:1px solid #fff;padding:10px;margin:10px 0;border-radius:5px;}
+#rgbLampFull {width:100%;height:20px;margin:10px 0;border-radius:5px;overflow:hidden;transition:0.3s;}
+#paymentInfo {display:none;margin-top:10px;}
+
+/* Animasi gradient */
+@keyframes moveGradient {
+  0%{background-position:0% 50%;}
+  50%{background-position:100% 50%;}
+  100%{background-position:0% 50%;}
+}
+.rgbActive {
+  background-size: 1400% 1400%;
+  animation: moveGradient 5s linear infinite;
+  transition: background 0.5s;
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>YUZI STORE - Top Up Game</h1>
+
+    <div id="rgbLampFull"></div>
+    <button onclick="toggleRGBManual()">Toggle Lampu RGB</button>
+
+    <select id="game">
+        <option value="Mobile Legends">Mobile Legends</option>
+        <option value="PUBG Mobile">PUBG Mobile</option>
+        <option value="Free Fire">Free Fire</option>
+        <option value="Roblox">Roblox</option>
+        <option value="Super Sus">Super Sus</option>
+        <option value="Call of Duty">Call of Duty</option>
+        <option value="Modern Warship">Modern Warship</option>
+        <option value="E-Wallet">E-Wallet Top Up</option>
+    </select>
+    <input type="text" id="username" placeholder="Masukkan ID Game / E-Wallet">
+    <input type="text" id="region" placeholder="Masukkan Region / Provider">
+    <select id="package">
+        <option value="Paket 1">Paket 1</option>
+        <option value="Paket 2">Paket 2</option>
+    </select>
+    <select id="payment">
+        <option value="QR">QR</option>
+        <option value="Transfer">Transfer</option>
+    </select>
+    <button onclick="processOrder()">Order Sekarang</button>
+    <div id="paymentInfo"></div>
+
+    <h2>Riwayat Transaksi</h2>
+    <div id="transactionList"></div>
+</div>
+
+<script>
+const adminNumber = "6285147769300";
+const lampFull = document.getElementById('rgbLampFull');
+let rgbOn = false;
+
+const packageColors = {
+    "Paket 1": "linear-gradient(270deg, #00f, #0ff, #0f0, #0ff, #00f)",
+    "Paket 2": "linear-gradient(270deg, #f00, #ff0, #f80, #ff0, #f00)",
+    "Sedang Proses": "linear-gradient(270deg, #0f0, #0ff, #00f, #0ff, #0f0)",
+    "Selesai": "linear-gradient(270deg, #ff0, #f80, #f00, #f80, #ff0)"
+};
+
+function startRGB(status){
+    lampFull.style.background = packageColors[status] || packageColors["Paket 1"];
+    lampFull.classList.add('rgbActive');
+    rgbOn = true;
+}
+
+function stopRGB(){
+    lampFull.style.background = "transparent";
+    lampFull.classList.remove('rgbActive');
+    rgbOn = false;
+}
+
+function toggleRGBManual(){
+    if(rgbOn) stopRGB();
+    else startRGB("Paket 1");
+}
+
+function loadTransactions(){
+    const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+    const list = document.getElementById('transactionList');
+    list.innerHTML = '';
+    transactions.forEach((t,index)=>{
+        list.innerHTML += `<div class="transaction">
+            <p><b>${t.game}</b> | ID: ${t.username} | Paket: ${t.package}</p>
+            <p>Status: <span class="status" id="status${index}">${t.status}</span></p>
+        </div>`;
+    });
+}
+
+function saveTransaction(transaction){
+    const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+    transactions.push(transaction);
+    localStorage.setItem('transactions', JSON.stringify(transactions));
+    loadTransactions();
+}
+
+function updateTransactionStatus(index,status){
+    const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+    if(transactions[index]){
+        transactions[index].status = status;
+        localStorage.setItem('transactions', JSON.stringify(transactions));
+        const statusEl = document.getElementById('status'+index);
+        if(statusEl) statusEl.innerText = status;
+
+        if(status === "Sedang Proses") startRGB("Sedang Proses");
+        if(status === "Selesai") startRGB("Selesai");
+    }
+}
+
+function processOrder(){
+    const game = document.getElementById('game').value;
+    const user = document.getElementById('username').value;
+    const region = document.getElementById('region').value;
+    const packageSelected = document.getElementById('package').value;
+    const payment = document.getElementById('payment').value;
+
+    if(!user || !region){
+        alert("Masukkan ID Game / E-Wallet dan Region / Provider terlebih dahulu!");
+        return;
+    }
+
+    const transaction = {game,user,region,package:packageSelected,payment,status:"Menunggu Bayar",id:Date.now()};
+    saveTransaction(transaction);
+
+    const waLink = `https://wa.me/${adminNumber}?text=${encodeURIComponent(
+        "Order Baru:\nGame: " + game +
+        "\nID: " + user +
+        "\nRegion: " + region +
+        "\nPaket: " + packageSelected +
+        "\nMetode: " + payment
+    )}`;
+
+    let info = `<p>Jika WhatsApp tidak otomatis terbuka, klik link berikut:</p>`;
+    info += `<p><a href="${waLink}" target="_blank">Konfirmasi Order ke Admin</a></p>`;
+    if(payment === "QR"){
+        info += `<p>Scan QR Code berikut:</p>`;
+        info += `<img src="https://via.placeholder.com/150?text=QR+Code" alt="QR Code">`;
+    }
+    document.getElementById('paymentInfo').innerHTML = info;
+    document.getElementById('paymentInfo').style.display = 'block';
+
+    window.open(waLink, "_blank");
+
+    setTimeout(()=>{
+        const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+        const index = transactions.findIndex(t => t.id === transaction.id);
+        if(index >= 0){
+            updateTransactionStatus(index,"Sedang Proses");
+
+            setTimeout(()=>{
+                updateTransactionStatus(index,"Selesai");
+                setTimeout(()=>{ stopRGB(); },5000);
+            },10000);
+        }
+    },5000);
+}
+
+loadTransactions();
+</script>
+</body>
+</html>
